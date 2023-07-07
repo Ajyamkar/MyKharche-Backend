@@ -1,52 +1,65 @@
 const express = require("express");
+const {
+  secret,
+  users,
+  userAuthentication,
+  verifyToken,
+} = require("./Middlewares/Auth");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const PORT = 3001;
-const users = [];
 
 app.use(express.json());
 
-const userAuthentication = (req, res, next) => {
-  let foundUser;
-  let errorStatus = 404;
-  let errorText = "User not found";
-  const { email, password } = req.body;
-
-  users.forEach((user) => {
-    if (user.email === email) {
-      if (user.password === password) {
-        foundUser = user;
-      } else {
-        errorStatus = 401;
-        errorText = "Incorrect password";
-      }
-      return;
-    }
-  });
-
-  if (foundUser) {
-    req.user = foundUser;
-    next();
-  } else {
-    res.status(errorStatus).send(errorText);
-  }
+const generateToken = (_id) => {
+  return jwt.sign({ _id }, secret);
 };
 
 app.post("/login", userAuthentication, (req, res) => {
-  console.log("req.user", req.user);
-  res.send("LoggedIn successfully");
+  res.send({
+    message: "LoggedIn successfully",
+    token: generateToken(req.user._id),
+  });
 });
 
 app.post("/signup", (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+  if (!email || !password || !firstName || !lastName) {
+    res.status(422).send("Some fields values are missing.");
+    return;
+  }
   const user = users.find((user) => {
-    return user.email === req.body.email;
+    return user.email === email;
   });
   if (user) {
     res.status(422).send("user already exists.");
     return;
   }
-  users.push({ id: Date.now(), ...req.body });
-  res.send("User is created successfully.");
+  const _id = Date.now();
+  users.push({ _id, ...req.body });
+  res.send({
+    message: "Created user successfully.",
+    token: generateToken(_id),
+  });
+});
+
+app.put("/updatePassword", (req, res) => {
+  const { email, updatedPassword } = req.body;
+  if (!email || !updatedPassword) {
+    res.status(422).send("Some fields are missing.");
+    return;
+  }
+  const foundUser = users.find((user) => user.email === email);
+  if (!foundUser) {
+    res.status(404).send("User not found");
+  } else {
+    foundUser.password = updatedPassword;
+    res.send({
+      message: "Successfully updated the password.",
+      token: generateToken(foundUser._id),
+    });
+  }
 });
 
 app.get("/users", (req, res) => {
@@ -55,6 +68,10 @@ app.get("/users", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("sucessfully created repo.");
+});
+
+app.get("/dashboard", verifyToken, (req, res) => {
+  res.send({ message: "Dashboard", user: req.user });
 });
 
 app.listen(PORT, () => {
