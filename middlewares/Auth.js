@@ -1,9 +1,7 @@
-const jwt = require("jsonwebtoken");
+const { usersDB } = require("../config/db");
+const { verifyJwtToken } = require("../utils");
 
-const secret = "sfvj sfsvdsv svbsjvhjsdvsdb sbv";
-const users = [];
-
-const userAuthentication = (req, res, next) => {
+const userAuthentication = async (req, res, next) => {
   let foundUser;
   let errorStatus = 404;
   let errorText = "User not found";
@@ -14,7 +12,8 @@ const userAuthentication = (req, res, next) => {
     return;
   }
 
-  users.forEach((user) => {
+  const usersArr = await usersDB.find({});
+  usersArr.forEach((user) => {
     if (user.email === email) {
       if (user.password === password) {
         foundUser = user;
@@ -34,16 +33,21 @@ const userAuthentication = (req, res, next) => {
   }
 };
 
-const verifyToken = (req, res, next) => {
-  const { token } = req.headers;
-  jwt.verify(token, secret, (err, currentUser) => {
-    if (err) {
-      res.status(403).send("Forbidden");
-      return;
+const verifyToken = async (req, res, next) => {
+  const { authorization } = req.headers;
+  const token = authorization.split(" ")[1];
+  try {
+    const data = await verifyJwtToken(token);
+    const currentUser = await usersDB.findOne({ _id: data._id });
+    if (!currentUser) {
+      res.status(404).send("User not found");
+    } else {
+      req.user = currentUser;
+      next();
     }
-    req.user = users.find((user) => user._id === currentUser._id);
-    next();
-  });
+  } catch (err) {
+    res.status(403).send("Forbidden");
+  }
 };
 
-module.exports = { secret, users, userAuthentication, verifyToken };
+module.exports = { userAuthentication, verifyToken };

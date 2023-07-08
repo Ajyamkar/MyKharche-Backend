@@ -1,56 +1,54 @@
 const express = require("express");
-const {
-  secret,
-  users,
-  userAuthentication,
-  verifyToken,
-} = require("./Middlewares/Auth");
-const jwt = require("jsonwebtoken");
+const { userAuthentication, verifyToken } = require("./Middlewares/Auth");
+const { connectDatabase, usersDB } = require("./config/db");
+const { generateToken } = require("./utils");
+const { PORT } = require("./config/config");
 
 const app = express();
-const PORT = 3001;
 
 app.use(express.json());
+connectDatabase();
 
-const generateToken = (_id) => {
-  return jwt.sign({ _id }, secret);
-};
-
-app.post("/login", userAuthentication, (req, res) => {
+app.post("/api/login", userAuthentication, (req, res) => {
   res.send({
     message: "LoggedIn successfully",
     token: generateToken(req.user._id),
   });
 });
 
-app.post("/signup", (req, res) => {
+app.post("/api/signup", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
   if (!email || !password || !firstName || !lastName) {
     res.status(422).send("Some fields values are missing.");
     return;
   }
-  const user = users.find((user) => {
-    return user.email === email;
-  });
+  const user = await usersDB.findOne({ email });
   if (user) {
     res.status(422).send("user already exists.");
     return;
   }
-  const _id = Date.now();
-  users.push({ _id, ...req.body });
-  res.send({
-    message: "Created user successfully.",
-    token: generateToken(_id),
-  });
+  try {
+    const newUser = await usersDB({ ...req.body }).save();
+    res.send({
+      message: "Created user successfully.",
+      token: generateToken(newUser._id),
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
 });
 
-app.put("/updatePassword", (req, res) => {
+app.put("/api/updatePassword", async (req, res) => {
   const { email, updatedPassword } = req.body;
   if (!email || !updatedPassword) {
     res.status(422).send("Some fields are missing.");
     return;
   }
-  const foundUser = users.find((user) => user.email === email);
+  const foundUser = await usersDB.findOneAndUpdate(
+    { email },
+    { password: updatedPassword }
+  );
   if (!foundUser) {
     res.status(404).send("User not found");
   } else {
@@ -62,16 +60,12 @@ app.put("/updatePassword", (req, res) => {
   }
 });
 
-app.get("/users", (req, res) => {
-  res.json(users);
+app.get("/api/dashboard", verifyToken, (req, res) => {
+  res.send({ message: "Dashboard", user: req.user });
 });
 
 app.get("/", (req, res) => {
-  res.send("sucessfully created repo.");
-});
-
-app.get("/dashboard", verifyToken, (req, res) => {
-  res.send({ message: "Dashboard", user: req.user });
+  res.send("Welcome to Mykharche backend");
 });
 
 app.listen(PORT, () => {
