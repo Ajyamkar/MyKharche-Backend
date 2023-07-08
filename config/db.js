@@ -20,7 +20,6 @@ const connectDatabase = () => {
     )
     .then(() => {
       console.log("Connected to database");
-      console.log(MONGO_URL);
     });
 };
 

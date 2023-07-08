@@ -1,12 +1,14 @@
 const express = require("express");
+const cors = require("cors");
 const { userAuthentication, verifyToken } = require("./Middlewares/Auth");
 const { connectDatabase, usersDB } = require("./config/db");
 const { generateToken } = require("./utils");
-const { PORT } = require("./config/config");
+const { PORT, FRONTEND_URL } = require("./config/config");
 
 const app = express();
 
 app.use(express.json());
+app.use(cors({ credentials: true, origin: FRONTEND_URL }));
 connectDatabase();
 
 app.post("/api/login", userAuthentication, (req, res) => {
@@ -24,7 +26,7 @@ app.post("/api/signup", async (req, res) => {
   }
   const user = await usersDB.findOne({ email });
   if (user) {
-    res.status(422).send("user already exists.");
+    res.status(422).send("User already exists.");
     return;
   }
   try {
@@ -34,7 +36,6 @@ app.post("/api/signup", async (req, res) => {
       token: generateToken(newUser._id),
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send(error);
   }
 });
@@ -58,6 +59,10 @@ app.put("/api/updatePassword", async (req, res) => {
       token: generateToken(foundUser._id),
     });
   }
+});
+
+app.get("/api/isUserLoggedIn", verifyToken, (req, res) => {
+  res.send("User is loggedin.");
 });
 
 app.get("/api/dashboard", verifyToken, (req, res) => {
