@@ -11,13 +11,10 @@ const usersDB = mongoose.model("users", userSchema);
 
 const connectDatabase = () => {
   mongoose
-    .connect(
-      "mongodb+srv://ajyamkar99:GWmpCw9DOOnqP2Iv@cluster0.lg01jwk.mongodb.net/MyKharche",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
-    )
+    .connect(MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     .then(() => {
       console.log("Connected to database");
     });

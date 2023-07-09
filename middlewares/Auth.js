@@ -19,7 +19,7 @@ const userAuthentication = async (req, res, next) => {
         foundUser = user;
       } else {
         errorStatus = 401;
-        errorText = "Incorrect password";
+        errorText = "Incorrect password, Try again.";
       }
       return;
     }

@@ -3,12 +3,16 @@ const cors = require("cors");
 const { userAuthentication, verifyToken } = require("./Middlewares/Auth");
 const { connectDatabase, usersDB } = require("./config/db");
 const { generateToken } = require("./utils");
-const { PORT, FRONTEND_URL } = require("./config/config");
+const {
+  PORT,
+  FRONTEND_URL,
+  GOOGLE_AUTH_PROMPT_URL,
+} = require("./config/config");
 
 const app = express();
 
 app.use(express.json());
-app.use(cors({ credentials: true, origin: FRONTEND_URL }));
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 connectDatabase();
 
 app.post("/api/login", userAuthentication, (req, res) => {
@@ -71,6 +75,14 @@ app.get("/api/dashboard", verifyToken, (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Welcome to Mykharche backend");
+});
+
+app.get("/api/getAuthUrl/google", (req, res) => {
+  res.send(GOOGLE_AUTH_PROMPT_URL);
+});
+
+app.get("/api/googleAuthRedirect", (req, res) => {
+  console.log(req.url);
 });
 
 app.listen(PORT, () => {
