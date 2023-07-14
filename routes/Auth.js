@@ -9,7 +9,7 @@ router.use(express.json());
 router.post("/login", userAuthentication, (req, res) => {
   res.send({
     message: "LoggedIn successfully",
-    token: generateToken(req.user._id),
+    token: generateToken(req.user._id, true),
   });
 });
 
