@@ -1,13 +1,8 @@
 const mongoose = require("mongoose");
+const user = require("../models/user");
 const { MONGO_URL } = require("./config");
 
-const userSchema = mongoose.Schema({
-  firstName: String,
-  lastName: String,
-  email: String,
-  password: String,
-});
-const usersDB = mongoose.model("users", userSchema);
+const usersDB = user;
 
 const connectDatabase = () => {
   mongoose
