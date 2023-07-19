@@ -33,7 +33,7 @@ const signupUser = async (req, res) => {
   try {
     const newUser = await usersDB({ ...req.body }).save();
     res.send({
-      message: "Created user successfully.",
+      message: "Account created successfully",
       token: generateToken(newUser._id),
     });
   } catch (error) {
@@ -95,13 +95,25 @@ const signUpUserWithGoogle = async (req, res) => {
       email,
     };
 
+    const isUserExist = await usersDB.find({ google_id });
+    if (isUserExist) {
+      res.status(422).send("User already exists");
+      return;
+    }
+
     const newUser = await usersDB(userData).save();
     res.send({
-      message: "Created user successfully.",
+      message: "Account created successfully",
       token: generateToken(newUser._id),
     });
   } catch (error) {
-    res.status(401).send(error.response?.data);
+    res
+      .status(401)
+      .send(
+        error.response?.data?.error === "invalid_grant"
+          ? "Token expired"
+          : "Something went wrong"
+      );
   }
 };
 
