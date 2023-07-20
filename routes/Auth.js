@@ -4,7 +4,7 @@ const {
   signupUser,
   updateUserPassword,
   checkUserIsLoggedIn,
-  signUpUserWithGoogle,
+  authenticateUserWithGoogle,
   googleAuthUrl,
 } = require("../controller/auth");
 const { userAuthentication, verifyToken } = require("../Middlewares/Auth");
@@ -22,6 +22,6 @@ router.put("/updatePassword", updateUserPassword);
 
 router.get("/isUserLoggedIn", verifyToken, checkUserIsLoggedIn);
 
-router.post("/googleSignUp", signUpUserWithGoogle);
+router.post("/authenticateWithGoogle", authenticateUserWithGoogle);
 
 module.exports = router;

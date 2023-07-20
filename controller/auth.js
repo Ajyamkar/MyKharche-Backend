@@ -66,8 +66,20 @@ const checkUserIsLoggedIn = (req, res) => {
   res.send("User is loggedin.");
 };
 
-const signUpUserWithGoogle = async (req, res) => {
-  const { code } = req.body;
+/**
+ * Function used to login & signup with google.
+ *
+ * It requires {code} - returned by the google server &
+ * {forLogin} - indicates to perform authentication for google login
+ *
+ * It fetches accessToken from the googleApi & with the help of accessToken user info is obtained.
+ *
+ * For loggingIn - From the obtained user info checks whether user googleId is present in database
+ *
+ * For signingUp - If no user is found then the user's googleId is stored with firstname & lastname
+ */
+const authenticateUserWithGoogle = async (req, res) => {
+  const { code, forLogin } = req.body;
   const url = `https://oauth2.googleapis.com/token?client_id=${GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&code=${code}&redirect_uri=${GOOGLE_REDIRECT_URI}&grant_type=authorization_code`;
   try {
     const response = await axios.post(url, {
@@ -95,8 +107,28 @@ const signUpUserWithGoogle = async (req, res) => {
       email,
     };
 
-    const isUserExist = await usersDB.find({ google_id });
-    if (isUserExist) {
+    const user = await usersDB.findOne({ google_id });
+
+    // For login flow
+    if (forLogin) {
+      if (user) {
+        res.send({
+          message: "LoggedIn successfully",
+          token: generateToken(user._id),
+        });
+        return;
+      } else {
+        res
+          .status(404)
+          .send(
+            "User not found. Redirecting to signup. Try signing up with Google"
+          );
+        return;
+      }
+    }
+
+    // From here signing up flow begins
+    if (user) {
       res.status(422).send("User already exists");
       return;
     }
@@ -123,5 +155,5 @@ module.exports = {
   signupUser,
   updateUserPassword,
   checkUserIsLoggedIn,
-  signUpUserWithGoogle,
+  authenticateUserWithGoogle,
 };
