@@ -4,7 +4,7 @@ const { verifyJwtToken } = require("../utils");
 const userAuthentication = async (req, res, next) => {
   let foundUser;
   let errorStatus = 404;
-  let errorText = "User not found";
+  let errorText = "User not found. Redirecting to signup, Try to signup";
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -40,7 +40,9 @@ const verifyToken = async (req, res, next) => {
     const data = await verifyJwtToken(token);
     const currentUser = await usersDB.findOne({ _id: data._id });
     if (!currentUser) {
-      res.status(404).send("User not found");
+      res
+        .status(404)
+        .send("User not found. Redirecting to signup, Try to signup");
     } else {
       req.user = currentUser;
       next();

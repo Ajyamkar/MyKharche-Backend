@@ -27,7 +27,9 @@ const signupUser = async (req, res) => {
   }
   const user = await usersDB.findOne({ email });
   if (user) {
-    res.status(422).send("User already exists.");
+    res
+      .status(422)
+      .send("User already exists. Redirecting to login, Try to login.");
     return;
   }
   try {
@@ -52,7 +54,9 @@ const updateUserPassword = async (req, res) => {
     { password: updatedPassword }
   );
   if (!foundUser) {
-    res.status(404).send("User not found");
+    res
+      .status(404)
+      .send("User not found. Redirecting to signup, Try to signup");
   } else {
     foundUser.password = updatedPassword;
     res.send({
@@ -129,7 +133,9 @@ const authenticateUserWithGoogle = async (req, res) => {
 
     // From here signing up flow begins
     if (user) {
-      res.status(422).send("User already exists");
+      res
+        .status(422)
+        .send("User already exists. Redirecting to login, Try to login.");
       return;
     }
 
