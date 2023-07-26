@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const user = require("../models/user");
+const expenseCategory = require("../models/expenseCategory");
 const { MONGO_URL } = require("./config");
 
 const usersDB = user;
+const expenseCategoryDB = expenseCategory;
 
 const connectDatabase = () => {
   mongoose
@@ -15,4 +17,4 @@ const connectDatabase = () => {
     });
 };
 
-module.exports = { usersDB, connectDatabase };
+module.exports = { usersDB, expenseCategoryDB, connectDatabase };

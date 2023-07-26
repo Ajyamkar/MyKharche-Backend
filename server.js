@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { verifyToken } = require("./Middlewares/Auth");
-const { connectDatabase } = require("./config/db");
+const { connectDatabase, usersDB, expenseCategoryDB } = require("./config/db");
 const { PORT, FRONTEND_URL } = require("./config/config");
 const authRoute = require("./routes/Auth");
 
@@ -20,6 +20,44 @@ app.get("/api/dashboard", verifyToken, (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Welcome to Mykharche backend");
+});
+
+app.get("/api/getUserExpenseCategories", verifyToken, async (req, res) => {
+  const { _id } = req.user;
+  try {
+    const userExpenseCategories = await expenseCategoryDB.find({
+      user_id: _id,
+    });
+    const modifiedExpenseCategories = userExpenseCategories.map((category) => {
+      return {
+        id: category._id,
+        categoryName: category.categoryName,
+        categoryType: category.categoryType,
+      };
+    });
+    res.send(modifiedExpenseCategories);
+  } catch (error) {
+    res.send(401).send(error);
+  }
+});
+
+app.post("/api/addExpenseCategory", verifyToken, async (req, res) => {
+  const { categoryName, categoryType } = req.body;
+  const { _id: user_id } = req.user;
+
+  try {
+    const userExpenseCategory = await expenseCategoryDB({
+      categoryName,
+      categoryType,
+      user_id,
+    }).save();
+    const user = await usersDB.findOne({ _id: user_id });
+    user.expenseCategory.push(userExpenseCategory);
+    user.save();
+    res.send("Successfully created new category");
+  } catch (error) {
+    res.status(401).send(error);
+  }
 });
 
 app.listen(PORT, () => {
