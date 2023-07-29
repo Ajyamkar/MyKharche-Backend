@@ -6,7 +6,7 @@ const {
   GOOGLE_AUTH_PROMPT_URL,
 } = require("../config/config");
 const { usersDB } = require("../config/db");
-const { generateToken } = require("../utils");
+const { generateToken, createDefaultExpenseCategories } = require("../utils");
 
 const googleAuthUrl = (req, res) => {
   res.send(GOOGLE_AUTH_PROMPT_URL);
@@ -34,6 +34,7 @@ const signupUser = async (req, res) => {
   }
   try {
     const newUser = await usersDB({ ...req.body }).save();
+    createDefaultExpenseCategories(newUser);
     res.send({
       message: "Account created successfully",
       token: generateToken(newUser._id),
@@ -140,6 +141,7 @@ const authenticateUserWithGoogle = async (req, res) => {
     }
 
     const newUser = await usersDB(userData).save();
+    createDefaultExpenseCategories(newUser);
     res.send({
       message: "Account created successfully",
       token: generateToken(newUser._id),
