@@ -4,6 +4,7 @@ const { verifyToken } = require("./Middlewares/Auth");
 const { connectDatabase, usersDB, expenseCategoryDB } = require("./config/db");
 const { PORT, FRONTEND_URL } = require("./config/config");
 const authRoute = require("./routes/Auth");
+const mongoose = require("mongoose");
 
 const app = express();
 
@@ -54,9 +55,35 @@ app.post("/api/addExpenseCategory", verifyToken, async (req, res) => {
     const user = await usersDB.findOne({ _id: user_id });
     user.expenseCategory.push(userExpenseCategory);
     user.save();
-    res.send("Successfully created new category");
+    res.send({
+      message: "Successfully created new category",
+      expenseCategoryId: userExpenseCategory._id,
+    });
   } catch (error) {
     res.status(401).send(error);
+  }
+});
+
+app.delete("/api/deleteExpenseCategory", verifyToken, async (req, res) => {
+  const { expenseCategoryId } = req.body;
+
+  try {
+    await expenseCategoryDB.findOneAndDelete({
+      _id: expenseCategoryId,
+    });
+    const user = await usersDB
+      .findOne({ _id: req.user._id })
+      .populate("expenseCategory");
+    user.expenseCategory = user.expenseCategory.filter((category) => {
+      return (
+        category._id.toString() !==
+        new mongoose.Types.ObjectId(expenseCategoryId).toString()
+      );
+    });
+    user.save();
+    res.send("Succesfully deleted the category");
+  } catch (error) {
+    res.send(error);
   }
 });
 
