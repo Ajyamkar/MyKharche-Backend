@@ -5,6 +5,7 @@ const { connectDatabase, usersDB, expenseCategoryDB } = require("./config/db");
 const { PORT, FRONTEND_URL } = require("./config/config");
 const authRoute = require("./routes/Auth");
 const mongoose = require("mongoose");
+const { INCOME_CATEGORIES } = require("./constants");
 
 const app = express();
 
@@ -21,6 +22,10 @@ app.get("/api/dashboard", verifyToken, (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Welcome to Mykharche backend");
+});
+
+app.get("/api/getDefaultIncomeCategories", verifyToken, async (req, res) => {
+  res.send({ list: INCOME_CATEGORIES });
 });
 
 app.get("/api/getUserExpenseCategories", verifyToken, async (req, res) => {
@@ -71,17 +76,32 @@ app.delete("/api/deleteExpenseCategory", verifyToken, async (req, res) => {
     await expenseCategoryDB.findOneAndDelete({
       _id: expenseCategoryId,
     });
+
     const user = await usersDB
       .findOne({ _id: req.user._id })
       .populate("expenseCategory");
-    user.expenseCategory = user.expenseCategory.filter((category) => {
+    const userExpenseCategories = user.expenseCategory.filter((category) => {
       return (
         category._id.toString() !==
         new mongoose.Types.ObjectId(expenseCategoryId).toString()
       );
     });
+
+    user.expenseCategory = userExpenseCategories;
     user.save();
-    res.send("Succesfully deleted the category");
+
+    const list = userExpenseCategories.map((category) => {
+      return {
+        id: category._id,
+        categoryName: category.categoryName,
+        categoryType: category.categoryType,
+      };
+    });
+
+    res.send({
+      message: "Succesfully deleted the category",
+      updatedCategoriesList: list,
+    });
   } catch (error) {
     res.send(error);
   }
