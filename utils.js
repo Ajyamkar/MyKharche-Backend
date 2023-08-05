@@ -30,7 +30,7 @@ const createDefaultExpenseCategories = (user) => {
     }
   );
   Promise.all(createdDefaultCategories).then((defaultExpenseCategories) => {
-    user.expenseCategory.push(...defaultExpenseCategories);
+    user.expenseCategories.push(...defaultExpenseCategories);
     user.save();
   });
 };

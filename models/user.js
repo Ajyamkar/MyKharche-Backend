@@ -8,7 +8,18 @@ const userSchema = Schema({
   password: String,
   google_id: String,
   profilePicture: String,
-  expenseCategory: [
+  userExpenses: [
+    {
+      date: String,
+      expense: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "userExpenses",
+        },
+      ],
+    },
+  ],
+  expenseCategories: [
     {
       type: Schema.Types.ObjectId,
       ref: "userExpenseCategory",

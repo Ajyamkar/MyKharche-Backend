@@ -1,5 +1,45 @@
 const mongoose = require("mongoose");
-const { usersDB, expenseCategoryDB } = require("../config/db");
+const { usersDB, expenseCategoryDB, userExpensesDB } = require("../config/db");
+
+const addExpense = async (req, res) => {
+  const { _id: user_id } = req.user;
+  const { date, itemName, amount, categoryId } = req.body;
+
+  try {
+    const dateString = new Date(date).toDateString();
+    const category = await expenseCategoryDB.findOne({ _id: categoryId });
+
+    // create expense
+    const addedExpense = await userExpensesDB({
+      date: dateString,
+      itemName,
+      amount,
+      category,
+      user_id,
+    }).save();
+
+    // search for the user
+    const user = await usersDB.findOne({ _id: user_id });
+    // filter out the expenseslist for the selected date.
+    const expenseForSelectedDate = user.userExpenses.filter(
+      (expense) => expense.date === dateString
+    );
+
+    if (!expenseForSelectedDate.length) {
+      // if no expense for the selected data then push new expense for the selected date.
+      user.userExpenses.push({ date: dateString, expense: [addedExpense] });
+      await user.save();
+    } else {
+      // if expenses is already added for selected date then push the new expense to existing expenses.
+      expenseForSelectedDate[0].expense.push(addedExpense);
+      await user.save();
+    }
+
+    res.send("successfully saved your expense.");
+  } catch (error) {
+    res.status(404).send("Something went wrong");
+  }
+};
 
 const getUserExpenseCategories = async (req, res) => {
   const { _id } = req.user;
@@ -30,9 +70,11 @@ const addExpenseCategory = async (req, res) => {
       categoryType,
       user_id,
     }).save();
+
     const user = await usersDB.findOne({ _id: user_id });
-    user.expenseCategory.push(userExpenseCategory);
-    user.save();
+    user.expenseCategories.push(userExpenseCategory);
+    await user.save();
+
     res.send({
       message: "Successfully created new category",
       expenseCategoryId: userExpenseCategory._id,
@@ -52,16 +94,16 @@ const deleteExpenseCategory = async (req, res) => {
 
     const user = await usersDB
       .findOne({ _id: req.user._id })
-      .populate("expenseCategory");
-    const userExpenseCategories = user.expenseCategory.filter((category) => {
+      .populate("expenseCategories");
+    const userExpenseCategories = user.expenseCategories.filter((category) => {
       return (
         category._id.toString() !==
         new mongoose.Types.ObjectId(expenseCategoryId).toString()
       );
     });
 
-    user.expenseCategory = userExpenseCategories;
-    user.save();
+    user.expenseCategories = userExpenseCategories;
+    await user.save();
 
     const list = userExpenseCategories.map((category) => {
       return {
@@ -81,6 +123,7 @@ const deleteExpenseCategory = async (req, res) => {
 };
 
 module.exports = {
+  addExpense,
   getUserExpenseCategories,
   addExpenseCategory,
   deleteExpenseCategory,
