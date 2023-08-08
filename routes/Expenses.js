@@ -4,6 +4,7 @@ const {
   addExpenseCategory,
   deleteExpenseCategory,
   addExpense,
+  getUserExpensesForSelectedDate,
 } = require("../controller/expenses");
 const { verifyToken } = require("../Middlewares/Auth");
 
@@ -16,5 +17,11 @@ router.get("/getUserExpenseCategories", verifyToken, getUserExpenseCategories);
 router.post("/addExpenseCategory", verifyToken, addExpenseCategory);
 
 router.delete("/deleteExpenseCategory", verifyToken, deleteExpenseCategory);
+
+router.get(
+  "/getUserExpensesForSelectedDate/:selectedDate",
+  verifyToken,
+  getUserExpensesForSelectedDate
+);
 
 module.exports = router;

@@ -122,9 +122,43 @@ const deleteExpenseCategory = async (req, res) => {
   }
 };
 
+const getUserExpensesForSelectedDate = async (req, res) => {
+  const { selectedDate } = req.params;
+  try {
+    const selectedDateToString = new Date(selectedDate)?.toDateString();
+
+    const expensesForSelectedDate = await userExpensesDB
+      .find({
+        date: selectedDateToString,
+        user_id: req.user._id,
+      })
+      .populate("category");
+
+    const modifiedExpensesArr = expensesForSelectedDate.map((expense) => {
+      const { _id, amount, date, itemName, category } = expense;
+      return {
+        _id,
+        amount,
+        date,
+        itemName,
+        category: {
+          id: category?._id,
+          categoryName: category?.categoryName,
+          categoryType: category?.categoryType,
+        },
+      };
+    });
+
+    res.send(modifiedExpensesArr);
+  } catch (error) {
+    res.status(404).send(error);
+  }
+};
+
 module.exports = {
   addExpense,
   getUserExpenseCategories,
   addExpenseCategory,
   deleteExpenseCategory,
+  getUserExpensesForSelectedDate,
 };
