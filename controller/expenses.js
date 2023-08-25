@@ -34,8 +34,7 @@ const addExpense = async (req, res) => {
       expenseForSelectedDate[0].expense.push(addedExpense);
       await user.save();
     }
-
-    res.send("successfully saved your expense.");
+    res.send("Successfully saved your expense.");
   } catch (error) {
     res.status(404).send("Something went wrong");
   }
@@ -155,10 +154,37 @@ const getUserExpensesForSelectedDate = async (req, res) => {
   }
 };
 
+const getExpenseById = async (req, res) => {
+  const { expenseId } = req.params;
+
+  try {
+    const expense = await userExpensesDB
+      .findById(expenseId)
+      .populate("category");
+
+    if (!expense) {
+      res.status(404).send("Invalid Expense ID");
+      return;
+    }
+    const { _id, amount, date, itemName, category } = expense;
+    const { categoryName, categoryType, _id: categoryId } = category;
+    res.send({
+      _id,
+      amount,
+      date,
+      itemName,
+      category: { _id: categoryId, categoryName, categoryType },
+    });
+  } catch (error) {
+    res.status(404).send("Something went wrong");
+  }
+};
+
 module.exports = {
   addExpense,
   getUserExpenseCategories,
   addExpenseCategory,
   deleteExpenseCategory,
   getUserExpensesForSelectedDate,
+  getExpenseById,
 };
