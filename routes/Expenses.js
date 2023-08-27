@@ -6,6 +6,7 @@ const {
   addExpense,
   getUserExpensesForSelectedDate,
   getExpenseById,
+  updateExpenseByExpenseId,
 } = require("../controller/expenses");
 const { verifyToken } = require("../Middlewares/Auth");
 
@@ -25,6 +26,12 @@ router.get(
   "/getUserExpensesForSelectedDate/:selectedDate",
   verifyToken,
   getUserExpensesForSelectedDate
+);
+
+router.put(
+  "/updateExpenseByExpenseId/:expenseId",
+  verifyToken,
+  updateExpenseByExpenseId
 );
 
 module.exports = router;

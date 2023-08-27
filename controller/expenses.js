@@ -180,6 +180,32 @@ const getExpenseById = async (req, res) => {
   }
 };
 
+const updateExpenseByExpenseId = async (req, res) => {
+  const { expenseId } = req.params;
+  const { editedData } = req.body;
+  const { date, categoryId } = editedData;
+
+  try {
+    if (date) {
+      editedData.date = new Date(date).toDateString();
+    }
+    if (categoryId) {
+      const category = await expenseCategoryDB.findOne({
+        _id: categoryId,
+      });
+      editedData.category = category;
+    }
+    const updatedData = await userExpensesDB.findByIdAndUpdate(
+      expenseId,
+      editedData,
+      { new: true }
+    );
+    res.send("Successfully edited the expense");
+  } catch (error) {
+    res.status(403).send(error);
+  }
+};
+
 module.exports = {
   addExpense,
   getUserExpenseCategories,
@@ -187,4 +213,5 @@ module.exports = {
   deleteExpenseCategory,
   getUserExpensesForSelectedDate,
   getExpenseById,
+  updateExpenseByExpenseId,
 };
