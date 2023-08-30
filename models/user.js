@@ -17,6 +17,7 @@ const userSchema = Schema({
           ref: "userExpenses",
         },
       ],
+      totalExpenseAmount: Number,
     },
   ],
   expenseCategories: [

@@ -27,11 +27,16 @@ const addExpense = async (req, res) => {
 
     if (!expenseForSelectedDate.length) {
       // if no expense for the selected data then push new expense for the selected date.
-      user.userExpenses.push({ date: dateString, expense: [addedExpense] });
+      user.userExpenses.push({
+        date: dateString,
+        expense: [addedExpense],
+        totalExpenseAmount: amount,
+      });
       await user.save();
     } else {
       // if expenses is already added for selected date then push the new expense to existing expenses.
       expenseForSelectedDate[0].expense.push(addedExpense);
+      expenseForSelectedDate[0].totalExpenseAmount += amount;
       await user.save();
     }
     res.send("Successfully saved your expense.");
@@ -133,6 +138,10 @@ const getUserExpensesForSelectedDate = async (req, res) => {
       })
       .populate("category");
 
+    const expenseForSelectedDate = req.user.userExpenses.filter(
+      (expense) => expense.date === selectedDateToString
+    );
+
     const modifiedExpensesArr = expensesForSelectedDate.map((expense) => {
       const { _id, amount, date, itemName, category } = expense;
       return {
@@ -148,7 +157,10 @@ const getUserExpensesForSelectedDate = async (req, res) => {
       };
     });
 
-    res.send(modifiedExpensesArr);
+    res.send({
+      expenses: modifiedExpensesArr,
+      totalExpenseAmount: expenseForSelectedDate[0].totalExpenseAmount,
+    });
   } catch (error) {
     res.status(404).send(error);
   }
@@ -195,11 +207,7 @@ const updateExpenseByExpenseId = async (req, res) => {
       });
       editedData.category = category;
     }
-    const updatedData = await userExpensesDB.findByIdAndUpdate(
-      expenseId,
-      editedData,
-      { new: true }
-    );
+    await userExpensesDB.findByIdAndUpdate(expenseId, editedData);
     res.send("Successfully edited the expense");
   } catch (error) {
     res.status(403).send(error);
