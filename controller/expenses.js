@@ -195,11 +195,12 @@ const getExpenseById = async (req, res) => {
 const updateExpenseByExpenseId = async (req, res) => {
   const { expenseId } = req.params;
   const { editedData } = req.body;
-  const { date, categoryId } = editedData;
+  const { date, categoryId, amount } = editedData;
+  const editedDateString = new Date(date).toDateString();
 
   try {
     if (date) {
-      editedData.date = new Date(date).toDateString();
+      editedData.date = editedDateString;
     }
     if (categoryId) {
       const category = await expenseCategoryDB.findOne({
@@ -207,7 +208,46 @@ const updateExpenseByExpenseId = async (req, res) => {
       });
       editedData.category = category;
     }
-    await userExpensesDB.findByIdAndUpdate(expenseId, editedData);
+
+    const expenseBeforeUpdate = await userExpensesDB.findById(expenseId);
+    const updatedExpense = await userExpensesDB.findByIdAndUpdate(
+      expenseId,
+      editedData
+    );
+    const user = await usersDB.findOne({ _id: req.user._id });
+
+    // if date for an expense is edited then need to update totalExpenseAmount
+    // for previous date and newly updated date
+    if (expenseBeforeUpdate.date !== editedDateString) {
+      const previousDateExpense = user.userExpenses.filter(
+        (expense) => expense.date === expenseBeforeUpdate.date
+      );
+      const expenseForSelectedDate = user.userExpenses.filter(
+        (expense) => expense.date === editedDateString
+      );
+      previousDateExpense[0].totalExpenseAmount -= expenseBeforeUpdate.amount;
+
+      // if amount of the expense is also edited along with date
+      if (expenseBeforeUpdate.amount !== amount) {
+        expenseForSelectedDate[0].totalExpenseAmount +=
+          amount - expenseBeforeUpdate.amount;
+      } else {
+        expenseForSelectedDate[0].totalExpenseAmount +=
+          expenseBeforeUpdate.amount;
+      }
+      await user.save();
+    }
+    // if amount of an expense is edited then need to update
+    // totalExpenseAmount for a particular date
+    else if (expenseBeforeUpdate.amount !== amount) {
+      const expenseForSelectedDate = user.userExpenses.filter(
+        (expense) => expense.date === updatedExpense.date
+      );
+      expenseForSelectedDate[0].totalExpenseAmount +=
+        amount - expenseBeforeUpdate.amount;
+      await user.save();
+    }
+
     res.send("Successfully edited the expense");
   } catch (error) {
     res.status(403).send(error);
