@@ -226,15 +226,7 @@ const updateExpenseByExpenseId = async (req, res) => {
         (expense) => expense.date === editedDateString
       );
       previousDateExpense[0].totalExpenseAmount -= expenseBeforeUpdate.amount;
-
-      // if amount of the expense is also edited along with date
-      if (expenseBeforeUpdate.amount !== amount) {
-        expenseForSelectedDate[0].totalExpenseAmount +=
-          amount - expenseBeforeUpdate.amount;
-      } else {
-        expenseForSelectedDate[0].totalExpenseAmount +=
-          expenseBeforeUpdate.amount;
-      }
+      expenseForSelectedDate[0].totalExpenseAmount += amount;
       await user.save();
     }
     // if amount of an expense is edited then need to update
@@ -254,6 +246,17 @@ const updateExpenseByExpenseId = async (req, res) => {
   }
 };
 
+const deleteExpenseByExpenseId = async (req, res) => {
+  const { expenseId } = req.params;
+
+  try {
+    const updated = await userExpensesDB.findByIdAndDelete(expenseId);
+    res.send(updated);
+  } catch (error) {
+    res.status(403).send(error);
+  }
+};
+
 module.exports = {
   addExpense,
   getUserExpenseCategories,
@@ -262,4 +265,5 @@ module.exports = {
   getUserExpensesForSelectedDate,
   getExpenseById,
   updateExpenseByExpenseId,
+  deleteExpenseByExpenseId,
 };

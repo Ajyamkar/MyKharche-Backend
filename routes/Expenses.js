@@ -7,6 +7,7 @@ const {
   getUserExpensesForSelectedDate,
   getExpenseById,
   updateExpenseByExpenseId,
+  deleteExpenseByExpenseId,
 } = require("../controller/expenses");
 const { verifyToken } = require("../Middlewares/Auth");
 
@@ -32,6 +33,12 @@ router.put(
   "/updateExpenseByExpenseId/:expenseId",
   verifyToken,
   updateExpenseByExpenseId
+);
+
+router.delete(
+  "deleteExpenseByExpenseId/:expenseId",
+  verifyToken,
+  deleteExpenseByExpenseId
 );
 
 module.exports = router;
