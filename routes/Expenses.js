@@ -36,7 +36,7 @@ router.put(
 );
 
 router.delete(
-  "deleteExpenseByExpenseId/:expenseId",
+  "/deleteExpenseByExpenseId/:expenseId",
   verifyToken,
   deleteExpenseByExpenseId
 );

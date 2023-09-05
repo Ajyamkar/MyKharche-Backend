@@ -29,13 +29,13 @@ const addExpense = async (req, res) => {
       // if no expense for the selected data then push new expense for the selected date.
       user.userExpenses.push({
         date: dateString,
-        expense: [addedExpense],
+        expenses: [addedExpense],
         totalExpenseAmount: amount,
       });
       await user.save();
     } else {
       // if expenses is already added for selected date then push the new expense to existing expenses.
-      expenseForSelectedDate[0].expense.push(addedExpense);
+      expenseForSelectedDate[0].expenses.push(addedExpense);
       expenseForSelectedDate[0].totalExpenseAmount += amount;
       await user.save();
     }
@@ -250,9 +250,28 @@ const deleteExpenseByExpenseId = async (req, res) => {
   const { expenseId } = req.params;
 
   try {
-    const updated = await userExpensesDB.findByIdAndDelete(expenseId);
-    res.send(updated);
+    const deletedExpense = await userExpensesDB.findByIdAndDelete(expenseId);
+    const user = await usersDB.findOne({ _id: req.user._id });
+    const expensesofDeletedExpenseDate = await userExpensesDB
+      .find({ date: deletedExpense.date })
+      .populate("category");
+
+    const userExpensesofDeletedExpenseDate = user.userExpenses.filter(
+      (expense) => expense.date === deletedExpense.date
+    );
+    // remove the deleted expense from expense array of userDB
+    const filteredExpenses = expensesofDeletedExpenseDate.filter(
+      (expense) => expense._id !== expenseId
+    );
+
+    userExpensesofDeletedExpenseDate[0].expenses = filteredExpenses;
+    userExpensesofDeletedExpenseDate[0].totalExpenseAmount -=
+      deletedExpense.amount;
+    user.save();
+
+    res.send("Successfully deleted an expense");
   } catch (error) {
+    console.log(error);
     res.status(403).send(error);
   }
 };

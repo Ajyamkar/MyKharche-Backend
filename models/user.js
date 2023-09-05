@@ -11,7 +11,7 @@ const userSchema = Schema({
   userExpenses: [
     {
       date: String,
-      expense: [
+      expenses: [
         {
           type: Schema.Types.ObjectId,
           ref: "userExpenses",
