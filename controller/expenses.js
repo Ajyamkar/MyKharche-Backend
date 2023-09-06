@@ -219,23 +219,47 @@ const updateExpenseByExpenseId = async (req, res) => {
     // if date for an expense is edited then need to update totalExpenseAmount
     // for previous date and newly updated date
     if (expenseBeforeUpdate.date !== editedDateString) {
-      const previousDateExpense = user.userExpenses.filter(
+      // expenses of previous date
+      const expensesofPreviosExpenseDate = await userExpensesDB
+        .find({
+          date: expenseBeforeUpdate.date,
+        })
+        .populate("category");
+      const filteredExpensesForPreviousDate =
+        expensesofPreviosExpenseDate.filter(
+          (expense) => expense._id !== expenseBeforeUpdate._id
+        );
+      const userExpensesofPreviousExpenseDate = user.userExpenses.filter(
         (expense) => expense.date === expenseBeforeUpdate.date
       );
-      const expenseForSelectedDate = user.userExpenses.filter(
+      userExpensesofPreviousExpenseDate[0].expenses =
+        filteredExpensesForPreviousDate;
+      userExpensesofPreviousExpenseDate[0].totalExpenseAmount -=
+        expenseBeforeUpdate.amount;
+
+      // expenses of selected date
+      const userExpensesofSelectedExpenseDate = user.userExpenses.filter(
         (expense) => expense.date === editedDateString
       );
-      previousDateExpense[0].totalExpenseAmount -= expenseBeforeUpdate.amount;
-      expenseForSelectedDate[0].totalExpenseAmount += amount;
+      if (!userExpensesofSelectedExpenseDate.length) {
+        user.userExpenses.push({
+          date: editedDateString,
+          expenses: [updatedExpense],
+          totalExpenseAmount: amount,
+        });
+      } else {
+        userExpensesofSelectedExpenseDate[0].expenses.push(updatedExpense);
+        userExpensesofSelectedExpenseDate[0].totalExpenseAmount += amount;
+      }
       await user.save();
     }
     // if amount of an expense is edited then need to update
     // totalExpenseAmount for a particular date
     else if (expenseBeforeUpdate.amount !== amount) {
-      const expenseForSelectedDate = user.userExpenses.filter(
+      const userExpensesofSelectedExpenseDate = user.userExpenses.filter(
         (expense) => expense.date === updatedExpense.date
       );
-      expenseForSelectedDate[0].totalExpenseAmount +=
+      userExpensesofSelectedExpenseDate[0].totalExpenseAmount +=
         amount - expenseBeforeUpdate.amount;
       await user.save();
     }
@@ -271,7 +295,6 @@ const deleteExpenseByExpenseId = async (req, res) => {
 
     res.send("Successfully deleted an expense");
   } catch (error) {
-    console.log(error);
     res.status(403).send(error);
   }
 };
