@@ -179,13 +179,24 @@ const getExpenseById = async (req, res) => {
       return;
     }
     const { _id, amount, date, itemName, category } = expense;
-    const { categoryName, categoryType, _id: categoryId } = category;
+
+    let categoryObj;
+    if (category) {
+      const { categoryName, categoryType, _id: categoryId } = category;
+      categoryObj = { _id: categoryId, categoryName, categoryType };
+    } else {
+      categoryObj = {
+        _id: "64f9fa3db4bf5f12d42f8f0d",
+        categoryName: "Deleted Category",
+        categoryType: "Deleted Category",
+      };
+    }
     res.send({
       _id,
       amount,
       date,
       itemName,
-      category: { _id: categoryId, categoryName, categoryType },
+      category: categoryObj,
     });
   } catch (error) {
     res.status(404).send("Something went wrong");
