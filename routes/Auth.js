@@ -7,7 +7,7 @@ const {
   authenticateUserWithGoogle,
   googleAuthUrl,
 } = require("../controller/auth");
-const { userAuthentication, verifyToken } = require("../Middlewares/Auth");
+const { userAuthentication, verifyToken } = require("../middlewares/Auth");
 const router = express.Router();
 
 router.use(express.json());

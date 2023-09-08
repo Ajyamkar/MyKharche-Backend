@@ -1,6 +1,6 @@
 const express = require("express");
 const { getDefaultIncomeCategories } = require("../controller/income");
-const { verifyToken } = require("../Middlewares/Auth");
+const { verifyToken } = require("../middlewares/Auth");
 const router = express.Router();
 
 router.get(

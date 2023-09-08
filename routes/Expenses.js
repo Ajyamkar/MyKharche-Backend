@@ -9,7 +9,7 @@ const {
   updateExpenseByExpenseId,
   deleteExpenseByExpenseId,
 } = require("../controller/expenses");
-const { verifyToken } = require("../Middlewares/Auth");
+const { verifyToken } = require("../middlewares/Auth");
 
 const router = express.Router();
 
