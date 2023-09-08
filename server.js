@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { verifyToken } = require("./Middlewares/Auth");
+const { verifyToken } = require("./middlewares/Auth");
 const { connectDatabase, usersDB, expenseCategoryDB } = require("./config/db");
 const { PORT, FRONTEND_URL } = require("./config/config");
 const authRoute = require("./routes/Auth");
