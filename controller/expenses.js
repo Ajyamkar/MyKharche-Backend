@@ -210,21 +210,21 @@ const updateExpenseByExpenseId = async (req, res) => {
   const editedDateString = new Date(date).toDateString();
 
   try {
-    if (date) {
-      editedData.date = editedDateString;
-    }
-    if (categoryId) {
-      const category = await expenseCategoryDB.findOne({
-        _id: categoryId,
-      });
-      editedData.category = category;
-    }
+    editedData.date = editedDateString;
+    const category = await expenseCategoryDB.findOne({
+      _id: categoryId,
+    });
+    editedData.category = category;
+    delete editedData.categoryId;
+    console.log("editedData", editedData);
 
     const expenseBeforeUpdate = await userExpensesDB.findById(expenseId);
     const updatedExpense = await userExpensesDB.findByIdAndUpdate(
       expenseId,
-      editedData
+      editedData,
+      { new: true }
     );
+    console.log("updatedExpense", updatedExpense);
     const user = await usersDB.findOne({ _id: req.user._id });
 
     // if date for an expense is edited then need to update totalExpenseAmount
@@ -277,6 +277,7 @@ const updateExpenseByExpenseId = async (req, res) => {
 
     res.send("Successfully edited the expense");
   } catch (error) {
+    console.log(error);
     res.status(403).send(error);
   }
 };
