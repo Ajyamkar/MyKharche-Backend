@@ -20,6 +20,18 @@ const userSchema = Schema({
       totalExpenseAmount: Number,
     },
   ],
+  userIncome: [
+    {
+      month: String,
+      incomes: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "userIncome",
+        },
+      ],
+      totalIncomeForMonth: Number,
+    },
+  ],
   expenseCategories: [
     {
       type: Schema.Types.ObjectId,
