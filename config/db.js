@@ -8,7 +8,7 @@ const incomes = require("../models/incomes");
 const usersDB = user;
 const userExpensesDB = expenses;
 const expenseCategoryDB = expenseCategory;
-const incomeCategoryDB = incomes;
+const userIncomeDB = incomes;
 
 const connectDatabase = () => {
   mongoose
@@ -25,6 +25,6 @@ module.exports = {
   usersDB,
   userExpensesDB,
   expenseCategoryDB,
-  incomeCategoryDB,
+  userIncomeDB,
   connectDatabase,
 };

@@ -1,5 +1,8 @@
 const express = require("express");
-const { getDefaultIncomeCategories } = require("../controller/income");
+const {
+  getDefaultIncomeCategories,
+  saveIncome,
+} = require("../controller/income");
 const { verifyToken } = require("../middlewares/Auth");
 const router = express.Router();
 
@@ -8,5 +11,7 @@ router.get(
   verifyToken,
   getDefaultIncomeCategories
 );
+
+router.post("/addedNewIncome", verifyToken, saveIncome);
 
 module.exports = router;

@@ -4,7 +4,6 @@ const { Schema } = mongoose;
 const incomeSchema = Schema({
   date: String,
   amount: String,
-  sourceName: String,
   source: {
     id: String,
     category: String,
