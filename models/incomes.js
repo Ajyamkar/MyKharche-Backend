@@ -8,6 +8,7 @@ const incomeSchema = Schema({
     id: String,
     category: String,
   },
+  user_id: Schema.Types.ObjectId,
 });
 
 module.exports = mongoose.model("userIncome", incomeSchema);

@@ -12,6 +12,6 @@ router.get(
   getDefaultIncomeCategories
 );
 
-router.post("/addedNewIncome", verifyToken, saveIncome);
+router.post("/addNewIncome", verifyToken, saveIncome);
 
 module.exports = router;
