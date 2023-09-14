@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const incomeSchema = Schema({
   date: String,
+  month: String,
   amount: String,
   source: {
     id: String,

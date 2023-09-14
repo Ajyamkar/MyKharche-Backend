@@ -18,6 +18,7 @@ const saveIncome = async (req, res) => {
 
     const addedIncome = await userIncomeDB({
       date: dateString,
+      month,
       amount,
       source: {
         id: categoryId,
@@ -33,10 +34,12 @@ const saveIncome = async (req, res) => {
 
     if (foundIncomeForSelectedMonth) {
       foundIncomeForSelectedMonth.incomes.push(addedIncome);
+      foundIncomeForSelectedMonth.totalIncomeForMonth += amount;
     } else {
       user.userIncome.push({
         month,
         incomes: [addedIncome],
+        totalIncomeForMonth: amount,
       });
     }
 
@@ -47,7 +50,17 @@ const saveIncome = async (req, res) => {
   }
 };
 
+const getIncomeForSelectedMonth = async (req, res) => {
+  const { selectedMonth: month } = req.params;
+  const incomesForSelectedMonth = await userIncomeDB.find({
+    month,
+    user_id: req.user._id,
+  });
+  res.send(incomesForSelectedMonth);
+};
+
 module.exports = {
   getDefaultIncomeCategories,
   saveIncome,
+  getIncomeForSelectedMonth,
 };
