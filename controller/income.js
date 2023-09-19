@@ -6,19 +6,22 @@ const getDefaultIncomeCategories = async (req, res) => {
 };
 
 const saveIncome = async (req, res) => {
-  const { date, amount, categoryId } = req.body;
+  let { date, amount, categoryId } = req.body;
+  date = new Date(date);
 
   try {
     const { categoryName: category } = INCOME_CATEGORIES.find(
       (incomeCategory) => incomeCategory.id === categoryId
     );
     // extract month in word from the selected date.
-    const month = new Date(date).toLocaleString("default", { month: "long" });
-    const dateString = new Date(date).toDateString();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+    const dateString = date.toDateString();
 
     const addedIncome = await userIncomeDB({
       date: dateString,
       month,
+      year,
       amount,
       source: {
         id: categoryId,
@@ -29,7 +32,7 @@ const saveIncome = async (req, res) => {
 
     const user = await usersDB.findById(req.user._id);
     const foundIncomeForSelectedMonth = user.userIncome.find(
-      (income) => income.month === month
+      (income) => income.month === month && income.year === year
     );
 
     if (foundIncomeForSelectedMonth) {
@@ -38,6 +41,7 @@ const saveIncome = async (req, res) => {
     } else {
       user.userIncome.push({
         month,
+        year,
         incomes: [addedIncome],
         totalIncomeForMonth: amount,
       });
@@ -51,11 +55,13 @@ const saveIncome = async (req, res) => {
 };
 
 const getIncomeForSelectedMonth = async (req, res) => {
-  const { selectedMonth: month } = req.params;
+  const { selectedMonth: month, year } = req.params;
   const incomesForSelectedMonth = await userIncomeDB.find({
     month,
+    year,
     user_id: req.user._id,
   });
+
   res.send(incomesForSelectedMonth);
 };
 

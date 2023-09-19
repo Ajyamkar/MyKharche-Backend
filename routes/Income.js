@@ -15,6 +15,10 @@ router.get(
 
 router.post("/addNewIncome", verifyToken, saveIncome);
 
-router.get("/getIncome/:selectedMonth", verifyToken, getIncomeForSelectedMonth);
+router.get(
+  "/getIncome/month/:selectedMonth/year/:year",
+  verifyToken,
+  getIncomeForSelectedMonth
+);
 
 module.exports = router;

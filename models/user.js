@@ -23,6 +23,7 @@ const userSchema = Schema({
   userIncome: [
     {
       month: String,
+      year: Number,
       incomes: [
         {
           type: Schema.Types.ObjectId,
