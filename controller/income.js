@@ -56,13 +56,24 @@ const saveIncome = async (req, res) => {
 
 const getIncomeForSelectedMonth = async (req, res) => {
   const { selectedMonth: month, year } = req.params;
-  const incomesForSelectedMonth = await userIncomeDB.find({
-    month,
-    year,
-    user_id: req.user._id,
-  });
+  try {
+    const incomesForSelectedMonth = await userIncomeDB.find({
+      month,
+      year,
+      user_id: req.user._id,
+    });
+    const foundIncome = req.user.userIncome.find(
+      (income) => income.month === month && income.year === Number(year)
+    );
 
-  res.send(incomesForSelectedMonth);
+    res.send({
+      incomesForSelectedMonth,
+      selectedMonth: month,
+      totalIncomeForMonth: foundIncome.totalIncomeForMonth,
+    });
+  } catch (error) {
+    res.status(404).send(error);
+  }
 };
 
 module.exports = {
