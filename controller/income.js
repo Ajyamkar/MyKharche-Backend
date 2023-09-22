@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { userIncomeDB, usersDB } = require("../config/db");
 const { INCOME_CATEGORIES } = require("../constants");
 
@@ -76,8 +77,40 @@ const getIncomeForSelectedMonth = async (req, res) => {
   }
 };
 
+const deleteIncome = async (req, res) => {
+  const { selectedId } = req.params;
+
+  try {
+    const deletedIncome = await userIncomeDB.findByIdAndDelete(selectedId);
+
+    const currentUser = await usersDB
+      .findById(req.user._id)
+      .populate("userIncome");
+
+    const incomesForSelectedMonth = currentUser.userIncome.find(
+      (income) =>
+        income.month === deletedIncome.month &&
+        income.year === deletedIncome.year
+    );
+
+    const filteredIncomes = incomesForSelectedMonth.incomes.filter(
+      (incomeId) => incomeId !== new mongoose.Types.ObjectId(selectedId)
+    );
+
+    incomesForSelectedMonth.incomes = filteredIncomes;
+    incomesForSelectedMonth.totalIncomeForMonth -= deletedIncome.amount;
+
+    currentUser.save();
+
+    res.send("successfully deleted the income");
+  } catch (error) {
+    res.status(404).send(error);
+  }
+};
+
 module.exports = {
   getDefaultIncomeCategories,
   saveIncome,
   getIncomeForSelectedMonth,
+  deleteIncome,
 };
