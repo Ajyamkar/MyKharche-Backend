@@ -108,9 +108,21 @@ const deleteIncome = async (req, res) => {
   }
 };
 
+const getIncomeById = async (req, res) => {
+  const { incomeId } = req.params;
+
+  try {
+    const income = await userIncomeDB.findById(incomeId);
+    res.send(income);
+  } catch (error) {
+    res.status(404).send(error);
+  }
+};
+
 module.exports = {
   getDefaultIncomeCategories,
   saveIncome,
   getIncomeForSelectedMonth,
   deleteIncome,
+  getIncomeById,
 };

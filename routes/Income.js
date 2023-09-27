@@ -4,6 +4,7 @@ const {
   saveIncome,
   getIncomeForSelectedMonth,
   deleteIncome,
+  getIncomeById,
 } = require("../controller/income");
 const { verifyToken } = require("../middlewares/Auth");
 const router = express.Router();
@@ -23,5 +24,7 @@ router.get(
 );
 
 router.delete("/deleteIncome/:selectedId", verifyToken, deleteIncome);
+
+router.get("/getIncome/:incomeId", verifyToken, getIncomeById);
 
 module.exports = router;
