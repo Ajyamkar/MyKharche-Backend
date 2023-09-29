@@ -119,10 +119,48 @@ const getIncomeById = async (req, res) => {
   }
 };
 
+const editIncomeById = async (req, res) => {
+  let { date, amount, categoryId } = req.body;
+  date = new Date(date);
+  const { incomeId } = req.params;
+
+  try {
+    console.log(req.body);
+    console.log(incomeId);
+    // extract month in word from the selected date.
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+
+    const { categoryName: category } = INCOME_CATEGORIES.find((income) => {
+      return income.id === categoryId;
+    });
+    const updatedData = {
+      date: date.toDateString(),
+      amount,
+      month,
+      year,
+      source: {
+        id: categoryId,
+        category,
+      },
+      user_id: req.user._id,
+    };
+    const updatedIncome = userIncomeDB.findByIdAndUpdate(
+      incomeId,
+      updatedData,
+      { new: true }
+    );
+    res.send("Successfully updated the income");
+  } catch (error) {
+    res.status(404).send(error);
+  }
+};
+
 module.exports = {
   getDefaultIncomeCategories,
   saveIncome,
   getIncomeForSelectedMonth,
   deleteIncome,
   getIncomeById,
+  editIncomeById,
 };
